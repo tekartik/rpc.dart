@@ -1,1 +1,1 @@
-export 'src/rpc.dart' show MethodCall, MethodResult;
+export 'src/rpc.dart' show MethodCall;
