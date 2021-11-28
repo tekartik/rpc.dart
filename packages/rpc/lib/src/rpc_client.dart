@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:tekartik_common_utils/common_utils_import.dart';
-import 'package:tekartik_rpc/rpc.dart';
 import 'package:tekartik_rpc/src/constant.dart';
 import 'package:tekartik_rpc/src/rpc_core_service_client.dart';
 import 'package:tekartik_rpc/src/rpc_exception.dart';

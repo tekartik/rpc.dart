@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:tekartik_rpc/rpc.dart';
-import 'package:tekartik_rpc/src/rpc.dart';
 import 'package:tekartik_rpc/src/rpc_exception.dart';
 
 import 'import.dart';
