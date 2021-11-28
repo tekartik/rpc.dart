@@ -3,15 +3,15 @@ import 'package:meta/meta.dart';
 
 /// An command object representing the invocation of a named method.
 @immutable
-class MethodCall
+class RpcMethodCall
 //
 //    implements
 //        MethodCall
 //
 {
-  /// Creates a [MethodCall] representing the invocation of [method] with the
+  /// Creates a [RpcMethodCall] representing the invocation of [method] with the
   /// specified [arguments].
-  const MethodCall(this.method, [this.arguments]);
+  const RpcMethodCall(this.method, [this.arguments]);
 
   /// The name of the method to be called.
   final String method;
@@ -24,16 +24,4 @@ class MethodCall
   @override
   String toString() =>
       '$runtimeType($method${arguments == null ? '' : ', $arguments'})';
-}
-
-@immutable
-abstract class RpcException implements Exception {
-  /// Exception code
-  String get code;
-
-  /// Exception message
-  String get message;
-
-  /// The arguments for the exceptions.
-  Object? get arguments;
 }
