@@ -15,6 +15,6 @@ class RpcCoreService extends RpcServiceBase {
       case coreServiceMethodeInit:
         return null;
     }
-    super.onCall(methodCall);
+    return super.onCall(methodCall);
   }
 }
