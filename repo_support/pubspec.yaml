@@ -1,0 +1,24 @@
+name: tekartik_rpc_repo_support
+description: Web socket support project
+version: 0.0.1
+publish_to: none
+# homepage: https://www.example.com
+#
+
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+
+#dependencies:
+#  path: ^1.6.0
+
+dev_dependencies:
+  dev_test:
+  test: ^1.6.0
+  process_run:
+  path:
+  tekartik_lints:
+    git:
+      url: https://github.com/tekartik/common.dart
+      ref: dart2_3
+      path: packages/lints
+    version: '>=0.1.0'
