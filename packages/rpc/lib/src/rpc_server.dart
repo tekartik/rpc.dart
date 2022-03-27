@@ -34,11 +34,11 @@ class RpcServer {
       SqfliteServerNotifyCallback? notifyCallback,
       required List<RpcService> services}) async {
     // Check services argument
-    var _servicesMap = <String, RpcService>{};
+    var servicesMap = <String, RpcService>{};
     void _registerService(RpcService service) {
       var name = service.name;
-      assert(!_servicesMap.containsKey(name));
-      _servicesMap[name] = service;
+      assert(!servicesMap.containsKey(name));
+      servicesMap[name] = service;
     }
 
     // Add core service
@@ -51,7 +51,7 @@ class RpcServer {
     var webSocketChannelServer = await webSocketChannelServerFactory
         .serve<String>(address: address, port: port);
 
-    return RpcServer._(webSocketChannelServer, notifyCallback, _servicesMap);
+    return RpcServer._(webSocketChannelServer, notifyCallback, servicesMap);
   }
 
   Future close() => _webSocketChannelServer.close();
