@@ -35,16 +35,16 @@ class RpcServer {
       required List<RpcService> services}) async {
     // Check services argument
     var servicesMap = <String, RpcService>{};
-    void _registerService(RpcService service) {
+    void registerService(RpcService service) {
       var name = service.name;
       assert(!servicesMap.containsKey(name));
       servicesMap[name] = service;
     }
 
     // Add core service
-    _registerService(RpcCoreService());
+    registerService(RpcCoreService());
     for (var service in services) {
-      _registerService(service);
+      registerService(service);
     }
 
     webSocketChannelServerFactory ??= webSocketChannelServerFactoryIo;
