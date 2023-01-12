@@ -8,6 +8,6 @@ class RpcCoreServiceClient {
   RpcCoreServiceClient(this.client);
 
   Future<void> init() async {
-    await client.sendRequest(RpcMethodCall(coreServiceMethodeInit));
+    await client.sendRequest<void>(RpcMethodCall(coreServiceMethodeInit));
   }
 }

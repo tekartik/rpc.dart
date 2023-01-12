@@ -46,16 +46,16 @@ void main() {
       await rpcServer.close();
     });
     test('ping', () async {
-      var result = await rpcClient.sendServiceRequest(
+      var result = await rpcClient.sendServiceRequest<String>(
           simpleRcpServiceName, 'ping', null);
       expect(result, 'pong');
     });
     test('param', () async {
-      var result =
-          await rpcClient.sendServiceRequest(simpleRcpServiceName, 'param', 1);
+      var result = await rpcClient.sendServiceRequest<Object?>(
+          simpleRcpServiceName, 'param', 1);
       expect(result, 1);
-      result = await rpcClient
-          .sendServiceRequest(simpleRcpServiceName, 'param', {'test': 1});
+      result = await rpcClient.sendServiceRequest<Object?>(
+          simpleRcpServiceName, 'param', {'test': 1});
       expect(result, {'test': 1});
       result = await rpcClient.sendServiceRequest(
           simpleRcpServiceName, 'param', null);
@@ -63,7 +63,8 @@ void main() {
     });
     test('dummy', () async {
       try {
-        await rpcClient.sendServiceRequest(simpleRcpServiceName, 'dummy', null);
+        await rpcClient.sendServiceRequest<void>(
+            simpleRcpServiceName, 'dummy', null);
       } on RpcException catch (e) {
         // RpcException(rpc_exception_unsupported, simple: onCall(dummy) not supported
         expect(e.code, 'rpc_exception_unsupported');
@@ -73,18 +74,20 @@ void main() {
     });
     test('throw', () async {
       try {
-        await rpcClient.sendServiceRequest(simpleRcpServiceName, 'throw', null);
+        await rpcClient.sendServiceRequest<void>(
+            simpleRcpServiceName, 'throw', null);
       } on RpcException catch (e) {
         // RpcException(throw, Throwing, {})
         expect(e.code, 'throw');
         expect(e.message, 'Throwing');
+        // ignore: inference_failure_on_collection_literal
         expect(e.arguments, {});
       }
     });
 
     test('throw_any', () async {
       try {
-        await rpcClient.sendServiceRequest(
+        await rpcClient.sendServiceRequest<void>(
             simpleRcpServiceName, 'throw_any', null);
       } on RpcException catch (e) {
         //   'data': {
