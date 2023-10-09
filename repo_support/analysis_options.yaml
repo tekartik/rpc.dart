@@ -1,2 +1,2 @@
-include: package:tekartik_lints/recommended.yaml
+include: package:tekartik_lints/strict.yaml
 
