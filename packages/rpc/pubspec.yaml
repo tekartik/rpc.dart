@@ -7,7 +7,7 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  path: ^1.7.0
+  path: '>=1.7.0'
   json_rpc_2:
   meta:
   cv:
@@ -26,3 +26,4 @@ dev_dependencies:
       path: packages/lints
     version: '>=0.1.0'
   test:
+  lints: '>=2.0.0'
