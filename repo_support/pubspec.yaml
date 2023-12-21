@@ -12,10 +12,11 @@ environment:
 #  path: ^1.6.0
 
 dev_dependencies:
-  dev_test:
-  test: ^1.6.0
+  dev_build:
+  test: '>=1.6.0'
   process_run:
   path:
+  lints: '>=2.0.0'
   tekartik_lints:
     git:
       url: https://github.com/tekartik/common.dart
