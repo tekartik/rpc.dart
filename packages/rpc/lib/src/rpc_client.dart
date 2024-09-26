@@ -6,7 +6,6 @@ import 'package:tekartik_rpc/src/constant.dart';
 import 'package:tekartik_rpc/src/rpc_core_service_client.dart';
 import 'package:tekartik_rpc/src/rpc_exception.dart';
 import 'package:tekartik_rpc/src/rpc_service_client.dart';
-import 'package:tekartik_web_socket/web_socket.dart';
 import 'package:tekartik_web_socket_io/web_socket_io.dart';
 
 /// Instance of a server
