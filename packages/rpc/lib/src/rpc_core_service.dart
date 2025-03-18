@@ -7,6 +7,7 @@ import 'import.dart';
 
 /// Core service (always present)
 class RpcCoreService extends RpcServiceBase {
+  /// Constructor
   RpcCoreService() : super(coreServiceName);
 
   @override

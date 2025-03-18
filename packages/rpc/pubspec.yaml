@@ -17,6 +17,15 @@ dependencies:
       ref: dart3a
       path: web_socket_io
     version: '>=0.2.0'
+  tekartik_common_utils:
+    git:
+      url: https://github.com/tekartik/common_utils.dart
+      ref: dart3a
+  tekartik_web_socket:
+    git:
+      url: https://github.com/tekartik/web_socket.dart
+      ref: dart3a
+      path: web_socket
 
 dev_dependencies:
   tekartik_lints:

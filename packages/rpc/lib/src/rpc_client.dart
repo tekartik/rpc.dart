@@ -1,12 +1,18 @@
 import 'dart:async';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
-import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_rpc/src/constant.dart';
 import 'package:tekartik_rpc/src/rpc_core_service_client.dart';
 import 'package:tekartik_rpc/src/rpc_exception.dart';
 import 'package:tekartik_rpc/src/rpc_service_client.dart';
 import 'package:tekartik_web_socket_io/web_socket_io.dart';
+import 'log_utils.dart';
+
+/// Debug flag
+var debugRpcClient = false;
+void _log(Object? message) {
+  log('rpc_client', message);
+}
 
 /// Instance of a server
 class RpcClient {
@@ -14,6 +20,7 @@ class RpcClient {
 
   final json_rpc.Client _client;
 
+  /// Connect to a server
   static Future<RpcClient> connect(
     Uri url, {
     WebSocketChannelClientFactory? webSocketChannelClientFactory,
@@ -66,10 +73,19 @@ class RpcClient {
     }
   }
 
+  /// Send a request, get a response
   Future<T> sendRequest<T>(String method, Object? param) async {
     T t;
     try {
+      if (debugRpcClient) {
+        _log('sendRequest: $method $param');
+      }
       t = await _wrapException(() => _client.sendRequest(method, param)) as T;
+
+      /// Debug helper
+      if (debugRpcClient) {
+        _log('sendRequest result: $t');
+      }
     } on json_rpc.RpcException catch (e) {
       // devPrint('ERROR ${e.runtimeType} $e ${e.message} ${e.data}');
       throw RpcException(rpcExceptionCodeJsonRpc, e.message, e.data);
@@ -77,12 +93,13 @@ class RpcClient {
     return t;
   }
 
-  // New!
+  /// New!
   Future<T> sendServiceRequest<T>(
       String service, String method, Object? param) {
     return sendRequest<T>(jsonRpcMethodService,
         {keyService: service, keyMethod: method, keyData: param});
   }
 
-  Future close() => _client.close();
+  /// Close the client
+  Future<void> close() => _client.close();
 }

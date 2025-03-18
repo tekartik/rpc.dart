@@ -6,8 +6,17 @@ import 'package:tekartik_rpc/src/rpc_exception.dart';
 import 'package:tekartik_rpc/src/rpc_service.dart';
 
 import 'import.dart';
+import 'log_utils.dart';
 
-typedef SqfliteServerNotifyCallback = void Function(
+/// Debug flag
+var debugRpcServer = false;
+
+void _log(Object? message) {
+  log('rpc_client', message);
+}
+
+/// Notify callback
+typedef RpcServerNotifyCallback = void Function(
     bool response, String method, Object? params);
 
 /// Web socket server
@@ -23,15 +32,16 @@ class RpcServer {
     });
   }
 
-  final SqfliteServerNotifyCallback? _notifyCallback;
+  final RpcServerNotifyCallback? _notifyCallback;
   final List<RpcServerChannel> _channels = [];
   final WebSocketChannelServer<String> _webSocketChannelServer;
 
+  /// Serve
   static Future<RpcServer> serve(
       {WebSocketChannelServerFactory? webSocketChannelServerFactory,
       Object? address,
       int? port,
-      SqfliteServerNotifyCallback? notifyCallback,
+      RpcServerNotifyCallback? notifyCallback,
       required List<RpcService> services}) async {
     // Check services argument
     var servicesMap = <String, RpcService>{};
@@ -54,15 +64,19 @@ class RpcServer {
     return RpcServer._(webSocketChannelServer, notifyCallback, servicesMap);
   }
 
+  /// Close
   Future close() => _webSocketChannelServer.close();
 
+  /// Url
   String get url => _webSocketChannelServer.url;
 
+  /// Port
   int get port => _webSocketChannelServer.port;
 }
 
 /// We have one channer per client
 class RpcServerChannel {
+  /// Constructor
   RpcServerChannel(this._rpcServer, WebSocketChannel<String> channel)
       : _jsonRpcServer = json_rpc.Server(channel) {
     // Specific method for getting server info upon start
@@ -103,13 +117,14 @@ class RpcServerChannel {
     // Cleanup
     // close opened database
     _jsonRpcServer.done.then((_) async {
-      print('done');
+      if (debugRpcServer) {
+        _log('done');
+      }
     });
   }
 
   final RpcServer _rpcServer;
   final json_rpc.Server _jsonRpcServer;
 
-  SqfliteServerNotifyCallback? get _notifyCallback =>
-      _rpcServer._notifyCallback;
+  RpcServerNotifyCallback? get _notifyCallback => _rpcServer._notifyCallback;
 }

@@ -19,7 +19,7 @@ class SimpleRpcService extends RpcServiceBase {
       return methodCall.arguments;
     }
     if (method == 'throw') {
-      throw RpcException('throw', 'Throwing', {});
+      throw RpcException('throw', 'Throwing', const {});
     }
     if (method == 'throw_any') {
       throw StateError('Throwing any');
@@ -29,6 +29,8 @@ class SimpleRpcService extends RpcServiceBase {
 }
 
 void main() {
+  // debugRpcClient = devWarning(true);
+  // debugRpcServer = devWarning(true);
   WebSocketChannelFactory factory = webSocketChannelFactoryMemory;
   group('simple_service', () {
     late RpcServer rpcServer;

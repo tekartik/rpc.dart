@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 
 import 'package:tekartik_rpc/rpc_server.dart';
@@ -14,7 +16,7 @@ class SimpleRpcService extends RpcServiceBase {
       return 'pong';
     }
     if (method == 'throw') {
-      throw RpcException('throw', 'Throwing', {});
+      throw RpcException('throw', 'Throwing', const {});
     }
     if (method == 'throw_any') {
       throw StateError('Throwing any');
