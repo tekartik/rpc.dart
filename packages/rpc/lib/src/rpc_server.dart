@@ -4,6 +4,7 @@ import 'package:tekartik_rpc/src/constant.dart';
 import 'package:tekartik_rpc/src/rpc_core_service.dart';
 import 'package:tekartik_rpc/src/rpc_exception.dart';
 import 'package:tekartik_rpc/src/rpc_service.dart';
+import 'package:tekartik_web_socket_io/web_socket_io.dart';
 
 import 'import.dart';
 import 'log_utils.dart';
@@ -61,6 +62,9 @@ class RpcServer {
     var webSocketChannelServer = await webSocketChannelServerFactory
         .serve<String>(address: address, port: port);
 
+    if (debugRpcServer) {
+      _log('listening on ${webSocketChannelServer.url}');
+    }
     return RpcServer._(webSocketChannelServer, notifyCallback, servicesMap);
   }
 

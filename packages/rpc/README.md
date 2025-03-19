@@ -15,3 +15,9 @@ dependencies:
       path: packages/rpc
     version: '>=0.1.0'
 ````
+
+tekartik_rpc_test:
+git:
+url: https://github.com/tekartik/rpc.dart
+ref: dart3a
+path: packages/rpc_test

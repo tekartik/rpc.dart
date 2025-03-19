@@ -4,7 +4,7 @@ import 'dart:async';
 
 import 'package:tekartik_rpc/rpc_server.dart';
 
-import 'rpc_client_menu.dart';
+import '../example/rpc_client_menu.dart';
 
 class SimpleRpcService extends RpcServiceBase {
   SimpleRpcService() : super(simpleRcpServiceName);

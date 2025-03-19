@@ -27,6 +27,11 @@ void rpcMainMenu() {
   menu('client', () {
     item('auto connect', () async {
       await rpcClientOrNull?.close();
+      write('auto connecting to ${urlKv.value}');
+      rpcClientOrNull = await AutoConnectRpcClient.autoConnect(
+        Uri.parse(urlKv.value!),
+      );
+      write('auto connected');
     });
     item('connect', () async {
       await rpcClientOrNull?.close();
