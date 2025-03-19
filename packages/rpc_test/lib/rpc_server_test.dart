@@ -11,12 +11,15 @@ class PingRpcService extends RpcServiceBase {
   PingRpcService() : super('ping_service');
 
   @override
-  FutureOr<Object?> onCall(RpcMethodCall methodCall) async {
+  FutureOr<Object?> onCall(
+    RpcServerChannel channel,
+    RpcMethodCall methodCall,
+  ) async {
     var method = methodCall.method;
     if (method == 'ping') {
       return 'pong';
     }
-    return super.onCall(methodCall);
+    return super.onCall(channel, methodCall);
   }
 }
 

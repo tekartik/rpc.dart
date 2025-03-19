@@ -29,7 +29,7 @@ class RpcServer {
   RpcServer._(
       this._webSocketChannelServer, this._notifyCallback, this._servicesMap) {
     _webSocketChannelServer.stream.listen((WebSocketChannel<String> channel) {
-      _channels.add(RpcServerChannel(this, channel));
+      _channels.add(_RpcServerChannel(this, channel));
     });
   }
 
@@ -78,10 +78,21 @@ class RpcServer {
   int get port => _webSocketChannelServer.port;
 }
 
-/// We have one channer per client
-class RpcServerChannel {
+/// Server channel (one per client)
+abstract class RpcServerChannel {
+  /// Id (incremental)
+  int get id;
+}
+
+/// We have one channel per client
+class _RpcServerChannel implements RpcServerChannel {
+  @override
+  final int id = ++_lastChannelId;
+
+  static var _lastChannelId = 0;
+
   /// Constructor
-  RpcServerChannel(this._rpcServer, WebSocketChannel<String> channel)
+  _RpcServerChannel(this._rpcServer, WebSocketChannel<String> channel)
       : _jsonRpcServer = json_rpc.Server(channel) {
     // Specific method for getting server info upon start
     _jsonRpcServer.registerMethod(jsonRpcMethodService,
@@ -100,7 +111,7 @@ class RpcServerChannel {
         } else {
           var method = map[keyMethod] as String;
           var data = map[keyData];
-          result = await service.onCall(RpcMethodCall(method, data));
+          result = await service.onCall(this, RpcMethodCall(method, data));
         }
         if (_notifyCallback != null) {
           _notifyCallback!(true, jsonRpcMethodService, result);

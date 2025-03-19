@@ -10,7 +10,10 @@ class SimpleRpcService extends RpcServiceBase {
   SimpleRpcService() : super(simpleRcpServiceName);
 
   @override
-  FutureOr<Object?> onCall(RpcMethodCall methodCall) async {
+  FutureOr<Object?> onCall(
+    RpcServerChannel channel,
+    RpcMethodCall methodCall,
+  ) async {
     var method = methodCall.method;
     if (method == 'ping') {
       return 'pong';
@@ -21,7 +24,7 @@ class SimpleRpcService extends RpcServiceBase {
     if (method == 'throw_any') {
       throw StateError('Throwing any');
     }
-    return super.onCall(methodCall);
+    return super.onCall(channel, methodCall);
   }
 }
 
