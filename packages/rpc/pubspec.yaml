@@ -11,6 +11,12 @@ dependencies:
   json_rpc_2:
   meta: ">=1.15.0"
   cv: ">=1.1.0+4"
+  tekartik_web_socket_browser:
+    git:
+      url: https://github.com/tekartik/web_socket.dart
+      path: web_socket_browser
+      ref: dart3a
+    version: '>=0.1.0'
   tekartik_web_socket_io:
     git:
       url: https://github.com/tekartik/web_socket.dart
@@ -26,8 +32,14 @@ dependencies:
       url: https://github.com/tekartik/web_socket.dart
       ref: dart3a
       path: web_socket
+  synchronized: any
 
 dev_dependencies:
+  tekartik_rpc_test:
+    git:
+      url: https://github.com/tekartik/rpc.dart
+      ref: dart3a
+      path: packages/rpc_test
   tekartik_lints:
     git:
       url: https://github.com/tekartik/common.dart

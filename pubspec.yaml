@@ -5,3 +5,4 @@ environment:
 workspace:
   - packages/rpc
   - repo_support
+  - packages/rpc_test

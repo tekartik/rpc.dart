@@ -1,0 +1,33 @@
+name: tekartik_rpc_test
+description: RPC test
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.7.0
+
+# Add regular dependencies here.
+dependencies:
+  tekartik_app_dev_menu:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_dev_menu
+  tekartik_rpc:
+    git:
+      url: https://github.com/tekartik/rpc.dart
+      ref: dart3a
+      path: packages/rpc
+  tekartik_web_socket:
+    git:
+      url: https://github.com/tekartik/web_socket.dart
+      ref: dart3a
+      path: web_socket
+  dev_test: ">=1.0.0+4"
+
+dev_dependencies:
+  lints: ">=5.0.0"
+  test: ">=1.24.0"
+
+
+resolution: workspace
