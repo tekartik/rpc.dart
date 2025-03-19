@@ -24,13 +24,13 @@ typedef RpcClientOnConnect = Future<void> Function(RpcClient client);
 /// Auto connect rpc client
 abstract class AutoConnectRpcClient implements RpcClient {
   /// Connect, should not fail
-  static Future<AutoConnectRpcClient> autoConnect(
+  factory AutoConnectRpcClient.autoConnect(
     Uri uri, {
     WebSocketChannelClientFactory? webSocketChannelClientFactory,
 
     /// One connect callback
     RpcClientOnConnect? onConnect,
-  }) async {
+  }) {
     webSocketChannelClientFactory ??= rpcWebSocketChannelClientFactoryUniversal;
 
     return _AutoConnectRpcClient(

@@ -96,7 +96,7 @@ void rpcTests(WebSocketChannelFactory factory) {
       );
       // print('rpcServer: ${rpcServer.url}');
       var onConnectCalledCount = 0;
-      var rpcClient = await AutoConnectRpcClient.autoConnect(
+      var rpcClient = AutoConnectRpcClient.autoConnect(
         Uri.parse(rpcServer.url),
         webSocketChannelClientFactory: factory.client,
         onConnect: (RpcClient client) async {
@@ -147,7 +147,7 @@ void rpcTests(WebSocketChannelFactory factory) {
         webSocketChannelServerFactory: factory.server,
         services: [PingRpcService()],
       );
-      var rpcClient = await AutoConnectRpcClient.autoConnect(
+      var rpcClient = AutoConnectRpcClient.autoConnect(
         Uri.parse(rpcServer.url),
         webSocketChannelClientFactory: factory.client,
       );
