@@ -1,6 +1,5 @@
 import 'package:dev_test/test.dart';
 import 'package:tekartik_rpc/rpc_client.dart';
-import 'package:tekartik_web_socket/web_socket.dart';
 
 /// Rpc client tests
 void rpcClientTests(WebSocketChannelClientFactory clientFactory) {
