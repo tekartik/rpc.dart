@@ -4,17 +4,19 @@ import 'dart:async';
 
 import 'package:tekartik_rpc/rpc_server.dart';
 
-const simpleRcpServiceName = 'simple';
+import '../example/rpc_client_menu.dart';
 
 class SimpleRpcService extends RpcServiceBase {
   SimpleRpcService() : super(simpleRcpServiceName);
 
   @override
   FutureOr<Object?> onCall(
-      RpcServerChannel channel, RpcMethodCall methodCall) async {
+    RpcServerChannel channel,
+    RpcMethodCall methodCall,
+  ) async {
     var method = methodCall.method;
     if (method == 'ping') {
-      return 'pong ${channel.id}';
+      return 'pong';
     }
     if (method == 'throw') {
       throw RpcException('throw', 'Throwing', const {});
@@ -26,8 +28,10 @@ class SimpleRpcService extends RpcServiceBase {
   }
 }
 
-Future<void> main() async {
-  var rpcServer =
-      await RpcServer.serve(services: [SimpleRpcService()], port: 8060);
+Future<void> main(List<String> args) async {
+  var rpcServer = await RpcServer.serve(
+    services: [SimpleRpcService()],
+    port: urlKvPort,
+  );
   print('listening on ${rpcServer.url}');
 }

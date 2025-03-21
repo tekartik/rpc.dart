@@ -5,8 +5,11 @@ const jsonRpcExceptionIntCodeService = 1;
 
 /// Exception code for jsonRpc
 const rpcExceptionCodeUnsupported = 'rpc_exception_unsupported';
+
+/// Encoded exception code
 const rpcExceptionCodeJsonRpc = 'rpc_exception_json';
 
+/// Exception for rpc
 @immutable
 abstract class RpcException implements Exception {
   /// Exception code

@@ -4,26 +4,48 @@ version: 0.1.0
 publish_to: none
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.6.0
 
 dependencies:
-  path: '>=1.7.0'
+  path: ">=1.9.0"
   json_rpc_2:
-  meta:
-  cv:
+  meta: ">=1.15.0"
+  cv: ">=1.1.0+4"
+  tekartik_web_socket_browser:
+    git:
+      url: https://github.com/tekartik/web_socket.dart
+      path: web_socket_browser
+      ref: dart3a
+    version: '>=0.1.0'
   tekartik_web_socket_io:
     git:
       url: https://github.com/tekartik/web_socket.dart
       ref: dart3a
       path: web_socket_io
     version: '>=0.2.0'
+  tekartik_common_utils:
+    git:
+      url: https://github.com/tekartik/common_utils.dart
+      ref: dart3a
+  tekartik_web_socket:
+    git:
+      url: https://github.com/tekartik/web_socket.dart
+      ref: dart3a
+      path: web_socket
+  synchronized: any
 
 dev_dependencies:
+  tekartik_rpc_test:
+    git:
+      url: https://github.com/tekartik/rpc.dart
+      ref: dart3a
+      path: packages/rpc_test
   tekartik_lints:
     git:
       url: https://github.com/tekartik/common.dart
       ref: dart3a
       path: packages/lints
     version: '>=0.1.0'
-  test:
-  lints: '>=2.0.0'
+  test: ">=1.24.0"
+  lints: ">=5.0.0"
+resolution: workspace

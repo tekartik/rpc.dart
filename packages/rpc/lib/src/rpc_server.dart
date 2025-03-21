@@ -4,10 +4,20 @@ import 'package:tekartik_rpc/src/constant.dart';
 import 'package:tekartik_rpc/src/rpc_core_service.dart';
 import 'package:tekartik_rpc/src/rpc_exception.dart';
 import 'package:tekartik_rpc/src/rpc_service.dart';
+import 'package:tekartik_web_socket_io/web_socket_io.dart';
 
 import 'import.dart';
+import 'log_utils.dart';
 
-typedef SqfliteServerNotifyCallback = void Function(
+/// Debug flag
+var debugRpcServer = false;
+
+void _log(Object? message) {
+  log('rpc_client', message);
+}
+
+/// Notify callback
+typedef RpcServerNotifyCallback = void Function(
     bool response, String method, Object? params);
 
 /// Web socket server
@@ -19,19 +29,20 @@ class RpcServer {
   RpcServer._(
       this._webSocketChannelServer, this._notifyCallback, this._servicesMap) {
     _webSocketChannelServer.stream.listen((WebSocketChannel<String> channel) {
-      _channels.add(RpcServerChannel(this, channel));
+      _channels.add(_RpcServerChannel(this, channel));
     });
   }
 
-  final SqfliteServerNotifyCallback? _notifyCallback;
+  final RpcServerNotifyCallback? _notifyCallback;
   final List<RpcServerChannel> _channels = [];
   final WebSocketChannelServer<String> _webSocketChannelServer;
 
+  /// Serve
   static Future<RpcServer> serve(
       {WebSocketChannelServerFactory? webSocketChannelServerFactory,
       Object? address,
       int? port,
-      SqfliteServerNotifyCallback? notifyCallback,
+      RpcServerNotifyCallback? notifyCallback,
       required List<RpcService> services}) async {
     // Check services argument
     var servicesMap = <String, RpcService>{};
@@ -51,19 +62,37 @@ class RpcServer {
     var webSocketChannelServer = await webSocketChannelServerFactory
         .serve<String>(address: address, port: port);
 
+    if (debugRpcServer) {
+      _log('listening on ${webSocketChannelServer.url}');
+    }
     return RpcServer._(webSocketChannelServer, notifyCallback, servicesMap);
   }
 
+  /// Close
   Future close() => _webSocketChannelServer.close();
 
+  /// Url
   String get url => _webSocketChannelServer.url;
 
+  /// Port
   int get port => _webSocketChannelServer.port;
 }
 
-/// We have one channer per client
-class RpcServerChannel {
-  RpcServerChannel(this._rpcServer, WebSocketChannel<String> channel)
+/// Server channel (one per client)
+abstract class RpcServerChannel {
+  /// Id (incremental)
+  int get id;
+}
+
+/// We have one channel per client
+class _RpcServerChannel implements RpcServerChannel {
+  @override
+  final int id = ++_lastChannelId;
+
+  static var _lastChannelId = 0;
+
+  /// Constructor
+  _RpcServerChannel(this._rpcServer, WebSocketChannel<String> channel)
       : _jsonRpcServer = json_rpc.Server(channel) {
     // Specific method for getting server info upon start
     _jsonRpcServer.registerMethod(jsonRpcMethodService,
@@ -82,7 +111,7 @@ class RpcServerChannel {
         } else {
           var method = map[keyMethod] as String;
           var data = map[keyData];
-          result = await service.onCall(RpcMethodCall(method, data));
+          result = await service.onCall(this, RpcMethodCall(method, data));
         }
         if (_notifyCallback != null) {
           _notifyCallback!(true, jsonRpcMethodService, result);
@@ -103,13 +132,14 @@ class RpcServerChannel {
     // Cleanup
     // close opened database
     _jsonRpcServer.done.then((_) async {
-      print('done');
+      if (debugRpcServer) {
+        _log('done');
+      }
     });
   }
 
   final RpcServer _rpcServer;
   final json_rpc.Server _jsonRpcServer;
 
-  SqfliteServerNotifyCallback? get _notifyCallback =>
-      _rpcServer._notifyCallback;
+  RpcServerNotifyCallback? get _notifyCallback => _rpcServer._notifyCallback;
 }
