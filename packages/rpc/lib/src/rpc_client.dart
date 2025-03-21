@@ -19,7 +19,7 @@ void _log(Object? message) {
 }
 
 /// Rpc client
-typedef RpcClientOnConnect = Future<void> Function(RpcClient client);
+typedef RpcClientOnConnect = FutureOr<void> Function(RpcClient client);
 
 /// Auto connect rpc client
 abstract class AutoConnectRpcClient implements RpcClient {
@@ -47,6 +47,9 @@ class _AutoConnectRpcClient
   final RpcClientOnConnect? onConnect;
   final _lock = Lock();
   final Uri uri;
+
+  /// Preveent reconnect
+  var _forceClosed = false;
 
   Future<RpcClient> connect() async {
     if (innerRpcClient == null) {
@@ -78,6 +81,7 @@ class _AutoConnectRpcClient
       required this.onConnect});
   @override
   Future<void> close() async {
+    _forceClosed = true;
     await innerRpcClient?.close();
     innerRpcClient = null;
     setDone();
@@ -89,6 +93,9 @@ class _AutoConnectRpcClient
     RpcClientConnectionException? lastError;
     for (var delay in delays) {
       try {
+        if (_forceClosed) {
+          throw RpcClientConnectionException._('Closed');
+        }
         var rpcClient = await connect();
         return await action(rpcClient);
       } on RpcClientConnectionException catch (e) {
@@ -205,7 +212,7 @@ class RpcClientConnectionException implements RpcClientException {
   RpcClientConnectionException._(this._cause);
   @override
   String toString() {
-    return 'RpcClientConnectionException(cause: $_cause';
+    return 'RpcClientConnectionException(cause: $_cause)';
   }
 }
 

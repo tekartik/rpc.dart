@@ -13,29 +13,33 @@ import 'log_utils.dart';
 var debugRpcServer = false;
 
 void _log(Object? message) {
-  log('rpc_client', message);
+  log('rpc_server', message);
 }
+
+/// Server channel connection/disconnection callback
+typedef RpcServerChannelConnectionCallback = FutureOr<void> Function(
+    RpcServerChannel channel);
 
 /// Notify callback
 typedef RpcServerNotifyCallback = void Function(
     bool response, String method, Object? params);
 
 /// Web socket server
-class RpcServer {
-  final Map<String, RpcService> _servicesMap;
+abstract class RpcServer {
+  /// Close
+  Future<void> close();
 
-  RpcService? _serviceByName(String name) => _servicesMap[name];
+  /// Connected channels (one per client)
+  List<RpcServerChannel> get channels;
 
-  RpcServer._(
-      this._webSocketChannelServer, this._notifyCallback, this._servicesMap) {
-    _webSocketChannelServer.stream.listen((WebSocketChannel<String> channel) {
-      _channels.add(_RpcServerChannel(this, channel));
-    });
-  }
+  /// Uri (to prefer over url)
+  Uri get uri;
 
-  final RpcServerNotifyCallback? _notifyCallback;
-  final List<RpcServerChannel> _channels = [];
-  final WebSocketChannelServer<String> _webSocketChannelServer;
+  /// Url
+  String get url;
+
+  /// Port
+  int get port;
 
   /// Serve
   static Future<RpcServer> serve(
@@ -43,6 +47,8 @@ class RpcServer {
       Object? address,
       int? port,
       RpcServerNotifyCallback? notifyCallback,
+      RpcServerChannelConnectionCallback? onClientConnected,
+      RpcServerChannelConnectionCallback? onClientDisconnected,
       required List<RpcService> services}) async {
     // Check services argument
     var servicesMap = <String, RpcService>{};
@@ -65,23 +71,63 @@ class RpcServer {
     if (debugRpcServer) {
       _log('listening on ${webSocketChannelServer.url}');
     }
-    return RpcServer._(webSocketChannelServer, notifyCallback, servicesMap);
+    return _RpcServer(webSocketChannelServer, notifyCallback, servicesMap,
+        onClientConnected: onClientConnected,
+        onClientDisconnected: onClientDisconnected);
+  }
+}
+
+class _RpcServer implements RpcServer {
+  final Map<String, RpcService> _servicesMap;
+  final RpcServerChannelConnectionCallback? onClientConnected;
+  final RpcServerChannelConnectionCallback? onClientDisconnected;
+  RpcService? _serviceByName(String name) => _servicesMap[name];
+
+  _RpcServer(
+      this._webSocketChannelServer, this._notifyCallback, this._servicesMap,
+      {required this.onClientConnected, required this.onClientDisconnected}) {
+    _webSocketChannelServer.stream.listen((WebSocketChannel<String> channel) {
+      var rpcServerChannel = _RpcServerChannel(this, channel);
+      _channels.add(rpcServerChannel);
+      onClientConnected?.call(rpcServerChannel);
+    });
   }
 
+  void removeChannel(_RpcServerChannel channel) {
+    _channels.remove(channel);
+    onClientDisconnected?.call(channel);
+  }
+
+  final RpcServerNotifyCallback? _notifyCallback;
+  final List<RpcServerChannel> _channels = [];
+  final WebSocketChannelServer<String> _webSocketChannelServer;
+
   /// Close
-  Future close() => _webSocketChannelServer.close();
+  @override
+  Future<void> close() => _webSocketChannelServer.close();
 
   /// Url
+  @override
   String get url => _webSocketChannelServer.url;
 
   /// Port
+  @override
   int get port => _webSocketChannelServer.port;
+
+  @override
+  Uri get uri => Uri.parse(url);
+
+  @override
+  List<RpcServerChannel> get channels => _channels.toList(growable: false);
 }
 
 /// Server channel (one per client)
 abstract class RpcServerChannel {
   /// Id (incremental)
   int get id;
+
+  /// Close the corresponding channel
+  Future<void> close();
 }
 
 /// We have one channel per client
@@ -94,6 +140,9 @@ class _RpcServerChannel implements RpcServerChannel {
   /// Constructor
   _RpcServerChannel(this._rpcServer, WebSocketChannel<String> channel)
       : _jsonRpcServer = json_rpc.Server(channel) {
+    if (debugRpcServer) {
+      _log('new channel $id');
+    }
     // Specific method for getting server info upon start
     _jsonRpcServer.registerMethod(jsonRpcMethodService,
         (json_rpc.Parameters parameters) async {
@@ -134,12 +183,21 @@ class _RpcServerChannel implements RpcServerChannel {
     _jsonRpcServer.done.then((_) async {
       if (debugRpcServer) {
         _log('done');
+        _rpcServer.removeChannel(this);
       }
     });
   }
 
-  final RpcServer _rpcServer;
+  final _RpcServer _rpcServer;
   final json_rpc.Server _jsonRpcServer;
 
   RpcServerNotifyCallback? get _notifyCallback => _rpcServer._notifyCallback;
+
+  @override
+  Future<void> close() async {
+    if (debugRpcServer) {
+      _log('closing channel $id');
+    }
+    await _jsonRpcServer.close();
+  }
 }
