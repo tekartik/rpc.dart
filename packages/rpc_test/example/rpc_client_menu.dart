@@ -18,37 +18,39 @@ RpcClient get rpcClient => rpcClientOrNull!;
 const simpleRcpServiceName = 'simple';
 
 Future<void> main(List<String> args) async {
+  debugRpcClient = true;
   await mainMenu(args, () {
-    rpcMainMenu();
+    rpcClientMainMenu();
   });
 }
 
-void rpcMainMenu() {
-  menu('client', () {
-    item('auto connect', () async {
-      await rpcClientOrNull?.close();
-      write('auto connecting to ${urlKv.value}');
-      rpcClientOrNull = AutoConnectRpcClient.autoConnect(
-        Uri.parse(urlKv.value!),
-      );
-      write('auto connected');
-    });
-    item('connect', () async {
-      await rpcClientOrNull?.close();
-      write('connecting to ${urlKv.value}');
-      rpcClientOrNull = await RpcClient.connect(Uri.parse(urlKv.value!));
-      write('connected');
-    });
-    item('close', () async {
-      await rpcClient.close();
-      rpcClientOrNull = null;
-      write('closed');
-    });
-    item('ping', () async {
-      write(
-        await rpcClient.sendServiceRequest(simpleRcpServiceName, 'ping', null),
-      );
-    });
-    keyValuesMenu('kv', [urlKv]);
+void rpcClientMainMenu() {
+  item('auto connect', () async {
+    await rpcClientOrNull?.close();
+    write('auto connecting to ${urlKv.value}');
+    rpcClientOrNull = AutoConnectRpcClient.autoConnect(
+      Uri.parse(urlKv.value!),
+      onConnect: (client) {
+        write('client connected');
+      },
+    );
+    write('auto connected');
   });
+  item('connect', () async {
+    await rpcClientOrNull?.close();
+    write('connecting to ${urlKv.value}');
+    rpcClientOrNull = await RpcClient.connect(Uri.parse(urlKv.value!));
+    write('connected');
+  });
+  item('close', () async {
+    await rpcClient.close();
+    rpcClientOrNull = null;
+    write('closed');
+  });
+  item('ping', () async {
+    write(
+      await rpcClient.sendServiceRequest(simpleRcpServiceName, 'ping', null),
+    );
+  });
+  keyValuesMenu('kv', [urlKv]);
 }

@@ -22,7 +22,6 @@ abstract class RpcServiceBase implements RpcService {
   RpcServiceBase(this.name);
 
   @override
-  @mustCallSuper
   FutureOr<Object?> onCall(
       RpcServerChannel channel, RpcMethodCall methodCall) async {
     throw RpcException(rpcExceptionCodeUnsupported,

@@ -29,9 +29,51 @@ class SimpleRpcService extends RpcServiceBase {
 }
 
 Future<void> main(List<String> args) async {
-  var rpcServer = await RpcServer.serve(
-    services: [SimpleRpcService()],
-    port: urlKvPort,
-  );
-  print('listening on ${rpcServer.url}');
+  debugRpcServer = true;
+  await mainMenu(args, () {
+    rpcServerMainMenu();
+  });
+}
+
+void rpcServerMainMenu() {
+  RpcServer? rpcServer;
+  item('serve', () async {
+    rpcServer = await RpcServer.serve(
+      services: [SimpleRpcService()],
+      port: urlKvPort,
+      onClientConnected: (channel) {
+        write('client connected ${channel.id}');
+      },
+      onClientDisconnected: (channel) {
+        write('client disconnected ${channel.id}');
+      },
+    );
+    print('listening on ${rpcServer?.url}');
+  });
+  item('get channels', () {
+    for (var channel in rpcServer?.channels ?? <RpcServerChannel>[]) {
+      write(channel.id);
+    }
+  });
+  item('close channel', () {
+    showMenu(() {
+      for (var channel in rpcServer?.channels ?? <RpcServerChannel>[]) {
+        item('channel ${channel.id}', () async {
+          await channel.close();
+          await popMenu();
+        });
+      }
+    });
+  });
+  item('close all channels', () async {
+    var futures = <Future>[];
+
+    for (var channel in rpcServer?.channels ?? <RpcServerChannel>[]) {
+      futures.add(channel.close());
+    }
+    await Future.wait(futures);
+  });
+  item('close', () async {
+    await rpcServer?.close();
+  });
 }
