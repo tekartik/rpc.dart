@@ -34,9 +34,10 @@ abstract class AutoConnectRpcClient implements RpcClient {
     webSocketChannelClientFactory ??= rpcWebSocketChannelClientFactoryUniversal;
 
     return _AutoConnectRpcClient(
-        uri: uri,
-        webSocketChannelClientFactory: webSocketChannelClientFactory,
-        onConnect: onConnect);
+      uri: uri,
+      webSocketChannelClientFactory: webSocketChannelClientFactory,
+      onConnect: onConnect,
+    );
   }
 }
 
@@ -57,9 +58,12 @@ class _AutoConnectRpcClient
         if (innerRpcClient != null) {
           return innerRpcClient!;
         }
-        var rpcClient = innerRpcClient = await RpcClient.connect(uri,
-            onConnect: onConnect,
-            webSocketChannelClientFactory: webSocketChannelClientFactory);
+        var rpcClient =
+            innerRpcClient = await RpcClient.connect(
+              uri,
+              onConnect: onConnect,
+              webSocketChannelClientFactory: webSocketChannelClientFactory,
+            );
         rpcClient.done.then((_) {
           if (debugRpcClient) {
             _log('innerRpcClient disconnected');
@@ -75,10 +79,11 @@ class _AutoConnectRpcClient
 
   RpcClient? innerRpcClient;
 
-  _AutoConnectRpcClient(
-      {required this.uri,
-      required this.webSocketChannelClientFactory,
-      required this.onConnect});
+  _AutoConnectRpcClient({
+    required this.uri,
+    required this.webSocketChannelClientFactory,
+    required this.onConnect,
+  });
   @override
   Future<void> close() async {
     _forceClosed = true;
@@ -125,7 +130,10 @@ class _AutoConnectRpcClient
 
   @override
   Future<T> sendServiceRequest<T>(
-      String service, String method, Object? param) async {
+    String service,
+    String method,
+    Object? param,
+  ) async {
     return _try<T>((rpcClient) async {
       return await rpcClient.sendServiceRequest<T>(service, method, param);
     });
@@ -162,8 +170,10 @@ class _RpcClient with RpcClientMixin implements RpcClient {
         var data = jsonRpcExceptionData[keyData];
         throw RpcException(code, e.message, data);
       }
-      throw RpcException(rpcExceptionCodeJsonRpc, e.message,
-          {keyData: e.data, keyCode: e.code});
+      throw RpcException(rpcExceptionCodeJsonRpc, e.message, {
+        keyData: e.data,
+        keyCode: e.code,
+      });
     }
   }
 
@@ -191,9 +201,15 @@ class _RpcClient with RpcClientMixin implements RpcClient {
   /// New!
   @override
   Future<T> sendServiceRequest<T>(
-      String service, String method, Object? param) {
-    return sendRequest<T>(jsonRpcMethodService,
-        {keyService: service, keyMethod: method, keyData: param});
+    String service,
+    String method,
+    Object? param,
+  ) {
+    return sendRequest<T>(jsonRpcMethodService, {
+      keyService: service,
+      keyMethod: method,
+      keyData: param,
+    });
   }
 
   /// Close the client
@@ -235,8 +251,9 @@ abstract class RpcClient {
     webSocketChannelClientFactory ??= rpcWebSocketChannelClientFactoryUniversal;
     WebSocketChannel<String> webSocketChannel;
     try {
-      webSocketChannel =
-          webSocketChannelClientFactory.connect<String>(url.toString());
+      webSocketChannel = webSocketChannelClientFactory.connect<String>(
+        url.toString(),
+      );
       await webSocketChannel.ready;
     } catch (e) {
       throw RpcClientConnectionException._(e);
@@ -246,8 +263,9 @@ abstract class RpcClient {
     unawaited(jsonRpcClient.listen());
 
     var rpcClient = _RpcClient(client: jsonRpcClient);
-    var coreServiceClient =
-        RpcCoreServiceClient(RpcServiceClient(rpcClient, coreServiceName));
+    var coreServiceClient = RpcCoreServiceClient(
+      RpcServiceClient(rpcClient, coreServiceName),
+    );
     await coreServiceClient.init();
     await onConnect?.call(rpcClient);
     jsonRpcClient.done.then((_) {

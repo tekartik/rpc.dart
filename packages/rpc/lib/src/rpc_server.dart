@@ -17,12 +17,12 @@ void _log(Object? message) {
 }
 
 /// Server channel connection/disconnection callback
-typedef RpcServerChannelConnectionCallback = FutureOr<void> Function(
-    RpcServerChannel channel);
+typedef RpcServerChannelConnectionCallback =
+    FutureOr<void> Function(RpcServerChannel channel);
 
 /// Notify callback
-typedef RpcServerNotifyCallback = void Function(
-    bool response, String method, Object? params);
+typedef RpcServerNotifyCallback =
+    void Function(bool response, String method, Object? params);
 
 /// Web socket server
 abstract class RpcServer {
@@ -42,14 +42,15 @@ abstract class RpcServer {
   int get port;
 
   /// Serve
-  static Future<RpcServer> serve(
-      {WebSocketChannelServerFactory? webSocketChannelServerFactory,
-      Object? address,
-      int? port,
-      RpcServerNotifyCallback? notifyCallback,
-      RpcServerChannelConnectionCallback? onClientConnected,
-      RpcServerChannelConnectionCallback? onClientDisconnected,
-      required List<RpcService> services}) async {
+  static Future<RpcServer> serve({
+    WebSocketChannelServerFactory? webSocketChannelServerFactory,
+    Object? address,
+    int? port,
+    RpcServerNotifyCallback? notifyCallback,
+    RpcServerChannelConnectionCallback? onClientConnected,
+    RpcServerChannelConnectionCallback? onClientDisconnected,
+    required List<RpcService> services,
+  }) async {
     // Check services argument
     var servicesMap = <String, RpcService>{};
     void registerService(RpcService service) {
@@ -71,9 +72,13 @@ abstract class RpcServer {
     if (debugRpcServer) {
       _log('listening on ${webSocketChannelServer.url}');
     }
-    return _RpcServer(webSocketChannelServer, notifyCallback, servicesMap,
-        onClientConnected: onClientConnected,
-        onClientDisconnected: onClientDisconnected);
+    return _RpcServer(
+      webSocketChannelServer,
+      notifyCallback,
+      servicesMap,
+      onClientConnected: onClientConnected,
+      onClientDisconnected: onClientDisconnected,
+    );
   }
 }
 
@@ -84,8 +89,12 @@ class _RpcServer implements RpcServer {
   RpcService? _serviceByName(String name) => _servicesMap[name];
 
   _RpcServer(
-      this._webSocketChannelServer, this._notifyCallback, this._servicesMap,
-      {required this.onClientConnected, required this.onClientDisconnected}) {
+    this._webSocketChannelServer,
+    this._notifyCallback,
+    this._servicesMap, {
+    required this.onClientConnected,
+    required this.onClientDisconnected,
+  }) {
     _webSocketChannelServer.stream.listen((WebSocketChannel<String> channel) {
       var rpcServerChannel = _RpcServerChannel(this, channel);
       _channels.add(rpcServerChannel);
@@ -139,13 +148,14 @@ class _RpcServerChannel implements RpcServerChannel {
 
   /// Constructor
   _RpcServerChannel(this._rpcServer, WebSocketChannel<String> channel)
-      : _jsonRpcServer = json_rpc.Server(channel) {
+    : _jsonRpcServer = json_rpc.Server(channel) {
     if (debugRpcServer) {
       _log('new channel $id');
     }
     // Specific method for getting server info upon start
-    _jsonRpcServer.registerMethod(jsonRpcMethodService,
-        (json_rpc.Parameters parameters) async {
+    _jsonRpcServer.registerMethod(jsonRpcMethodService, (
+      json_rpc.Parameters parameters,
+    ) async {
       try {
         if (_notifyCallback != null) {
           _notifyCallback!(false, jsonRpcMethodService, parameters.value);
@@ -168,8 +178,11 @@ class _RpcServerChannel implements RpcServerChannel {
         return result;
       } on RpcException catch (e) {
         /// RpcException to json_rpc
-        throw json_rpc.RpcException(jsonRpcExceptionIntCodeService, e.message,
-            data: {keyData: e.arguments, keyCode: e.code});
+        throw json_rpc.RpcException(
+          jsonRpcExceptionIntCodeService,
+          e.message,
+          data: {keyData: e.arguments, keyCode: e.code},
+        );
       } catch (e) {
         // devPrint('### Unhandled: $e');
         rethrow;

@@ -11,7 +11,9 @@ class SimpleRpcService extends RpcServiceBase {
 
   @override
   FutureOr<Object?> onCall(
-      RpcServerChannel channel, RpcMethodCall methodCall) async {
+    RpcServerChannel channel,
+    RpcMethodCall methodCall,
+  ) async {
     var method = methodCall.method;
     if (method == 'ping') {
       return 'pong';
@@ -38,8 +40,9 @@ void main() {
     late RpcClient rpcClient;
     setUpAll(() async {
       rpcServer = await RpcServer.serve(
-          webSocketChannelServerFactory: factory.server,
-          services: [SimpleRpcService()]);
+        webSocketChannelServerFactory: factory.server,
+        services: [SimpleRpcService()],
+      );
       rpcClient = await RpcClient.connect(
         Uri.parse(rpcServer.url),
         webSocketChannelClientFactory: factory.client,
@@ -50,24 +53,39 @@ void main() {
     });
     test('ping', () async {
       var result = await rpcClient.sendServiceRequest<String>(
-          simpleRcpServiceName, 'ping', null);
+        simpleRcpServiceName,
+        'ping',
+        null,
+      );
       expect(result, 'pong');
     });
     test('param', () async {
       var result = await rpcClient.sendServiceRequest<Object?>(
-          simpleRcpServiceName, 'param', 1);
+        simpleRcpServiceName,
+        'param',
+        1,
+      );
       expect(result, 1);
       result = await rpcClient.sendServiceRequest<Object?>(
-          simpleRcpServiceName, 'param', {'test': 1});
+        simpleRcpServiceName,
+        'param',
+        {'test': 1},
+      );
       expect(result, {'test': 1});
       result = await rpcClient.sendServiceRequest(
-          simpleRcpServiceName, 'param', null);
+        simpleRcpServiceName,
+        'param',
+        null,
+      );
       expect(result, isNull);
     });
     test('dummy', () async {
       try {
         await rpcClient.sendServiceRequest<void>(
-            simpleRcpServiceName, 'dummy', null);
+          simpleRcpServiceName,
+          'dummy',
+          null,
+        );
       } on RpcException catch (e) {
         // RpcException(rpc_exception_unsupported, simple: onCall(dummy) not supported
         expect(e.code, 'rpc_exception_unsupported');
@@ -78,7 +96,10 @@ void main() {
     test('throw', () async {
       try {
         await rpcClient.sendServiceRequest<void>(
-            simpleRcpServiceName, 'throw', null);
+          simpleRcpServiceName,
+          'throw',
+          null,
+        );
       } on RpcException catch (e) {
         // RpcException(throw, Throwing, {})
         expect(e.code, 'throw');
@@ -91,7 +112,10 @@ void main() {
     test('throw_any', () async {
       try {
         await rpcClient.sendServiceRequest<void>(
-            simpleRcpServiceName, 'throw_any', null);
+          simpleRcpServiceName,
+          'throw_any',
+          null,
+        );
       } on RpcException catch (e) {
         //   'data': {
         //               'full': 'Bad state: Throwing any',
