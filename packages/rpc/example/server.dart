@@ -11,7 +11,9 @@ class SimpleRpcService extends RpcServiceBase {
 
   @override
   FutureOr<Object?> onCall(
-      RpcServerChannel channel, RpcMethodCall methodCall) async {
+    RpcServerChannel channel,
+    RpcMethodCall methodCall,
+  ) async {
     var method = methodCall.method;
     if (method == 'ping') {
       return 'pong ${channel.id}';
@@ -27,7 +29,9 @@ class SimpleRpcService extends RpcServiceBase {
 }
 
 Future<void> main() async {
-  var rpcServer =
-      await RpcServer.serve(services: [SimpleRpcService()], port: 8060);
+  var rpcServer = await RpcServer.serve(
+    services: [SimpleRpcService()],
+    port: 8060,
+  );
   print('listening on ${rpcServer.url}');
 }

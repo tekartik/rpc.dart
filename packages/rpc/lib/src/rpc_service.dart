@@ -23,8 +23,12 @@ abstract class RpcServiceBase implements RpcService {
 
   @override
   FutureOr<Object?> onCall(
-      RpcServerChannel channel, RpcMethodCall methodCall) async {
-    throw RpcException(rpcExceptionCodeUnsupported,
-        '$name: onCall(${methodCall.toDebugText()}) not supported');
+    RpcServerChannel channel,
+    RpcMethodCall methodCall,
+  ) async {
+    throw RpcException(
+      rpcExceptionCodeUnsupported,
+      '$name: onCall(${methodCall.toDebugText()}) not supported',
+    );
   }
 }

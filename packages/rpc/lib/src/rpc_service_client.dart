@@ -15,6 +15,9 @@ class RpcServiceClient {
   /// Service request
   Future<T> sendRequest<T>(RpcMethodCall methodCall) {
     return _client.sendServiceRequest(
-        name, methodCall.method, methodCall.arguments);
+      name,
+      methodCall.method,
+      methodCall.arguments,
+    );
   }
 }
