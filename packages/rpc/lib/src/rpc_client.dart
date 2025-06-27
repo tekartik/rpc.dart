@@ -58,12 +58,11 @@ class _AutoConnectRpcClient
         if (innerRpcClient != null) {
           return innerRpcClient!;
         }
-        var rpcClient =
-            innerRpcClient = await RpcClient.connect(
-              uri,
-              onConnect: onConnect,
-              webSocketChannelClientFactory: webSocketChannelClientFactory,
-            );
+        var rpcClient = innerRpcClient = await RpcClient.connect(
+          uri,
+          onConnect: onConnect,
+          webSocketChannelClientFactory: webSocketChannelClientFactory,
+        );
         rpcClient.done.then((_) {
           if (debugRpcClient) {
             _log('innerRpcClient disconnected');

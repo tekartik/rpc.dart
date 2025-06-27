@@ -5,5 +5,5 @@ import 'package:tekartik_web_socket_io/web_socket_io.dart';
 /// The best platform web socket client factory
 WebSocketChannelClientFactory get rpcWebSocketChannelClientFactoryUniversal =>
     kDartIsWeb
-        ? webSocketChannelClientFactoryBrowser
-        : webSocketChannelClientFactoryIo;
+    ? webSocketChannelClientFactoryBrowser
+    : webSocketChannelClientFactoryIo;
