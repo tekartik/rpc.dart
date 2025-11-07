@@ -2,5 +2,5 @@
 include: package:tekartik_lints/package.yaml
 
 linter:
-  rules:
+  rules: []
     # depend_on_referenced_packages: false
