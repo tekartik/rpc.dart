@@ -10,6 +10,7 @@ void rpcClientTests(WebSocketChannelClientFactory clientFactory) {
           Uri.parse('ws://localhost:9999'),
           webSocketChannelClientFactory: clientFactory,
         );
+
         fail('should fail');
       } on RpcClientConnectionException catch (_) {}
     });

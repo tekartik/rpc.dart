@@ -44,6 +44,7 @@ class RpcTestContext {
       Uri.parse(rpcServer.url),
       webSocketChannelClientFactory: webSocketChannelFactory.client,
     );
+
     expect(rpcClient, isNotNull);
   }
 
@@ -123,6 +124,7 @@ void rpcTests(WebSocketChannelFactory factory) {
         'ping',
         'ping_data',
       );
+
       expect(onConnectCalledCount, 2);
 
       await rpcServer.close();
@@ -191,6 +193,7 @@ void rpcTests(WebSocketChannelFactory factory) {
 
       expect(rpcClient, isNotNull);
     });
+
     tearDownAll(() async {
       await rpcServer.close();
     });
@@ -199,6 +202,7 @@ void rpcTests(WebSocketChannelFactory factory) {
 
 void main() {
   rpcTests(webSocketChannelFactoryMemory);
+
   group('server', () {
     test('init', () async {
       WebSocketChannelFactory factory = webSocketChannelFactoryMemory;
@@ -221,6 +225,7 @@ void main() {
       ctx = RpcTestContext(webSocketChannelFactoryMemory);
       await ctx.setUp();
     });
+
     tearDownAll(() async {
       await ctx.tearDown();
     });

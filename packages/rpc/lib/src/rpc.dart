@@ -3,6 +3,7 @@ import 'package:meta/meta.dart';
 
 /// An command object representing the invocation of a named method.
 @immutable
+/// Class representing [RpcMethodCall].
 class RpcMethodCall
 //
 //    implements

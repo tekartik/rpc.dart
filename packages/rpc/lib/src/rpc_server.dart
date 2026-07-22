@@ -53,8 +53,10 @@ abstract class RpcServer {
   }) async {
     // Check services argument
     var servicesMap = <String, RpcService>{};
+
     void registerService(RpcService service) {
       var name = service.name;
+
       assert(!servicesMap.containsKey(name));
       servicesMap[name] = service;
     }

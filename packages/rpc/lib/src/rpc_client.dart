@@ -88,6 +88,7 @@ class _AutoConnectRpcClient
     _forceClosed = true;
     await innerRpcClient?.close();
     innerRpcClient = null;
+
     setDone();
   }
 
@@ -101,6 +102,7 @@ class _AutoConnectRpcClient
           throw RpcClientConnectionException._('Closed');
         }
         var rpcClient = await connect();
+
         return await action(rpcClient);
       } on RpcClientConnectionException catch (e) {
         lastError = e;
@@ -167,6 +169,7 @@ class _RpcClient with RpcClientMixin implements RpcClient {
         var jsonRpcExceptionData = e.data as Map;
         var code = jsonRpcExceptionData[keyCode] as String;
         var data = jsonRpcExceptionData[keyData];
+
         throw RpcException(code, e.message, data);
       }
       throw RpcException(rpcExceptionCodeJsonRpc, e.message, {

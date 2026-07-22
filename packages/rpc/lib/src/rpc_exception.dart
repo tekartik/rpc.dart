@@ -11,6 +11,7 @@ const rpcExceptionCodeJsonRpc = 'rpc_exception_json';
 
 /// Exception for rpc
 @immutable
+/// Class representing [RpcException].
 abstract class RpcException implements Exception {
   /// Exception code
   String get code;
