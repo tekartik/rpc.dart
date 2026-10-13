@@ -198,8 +198,8 @@ class _RpcServerChannel implements RpcServerChannel {
     _jsonRpcServer.done.then((_) async {
       if (debugRpcServer) {
         _log('done');
-        _rpcServer.removeChannel(this);
       }
+      _rpcServer.removeChannel(this);
     });
   }
 

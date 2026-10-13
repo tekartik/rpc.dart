@@ -182,20 +182,15 @@ class _RpcClient with RpcClientMixin implements RpcClient {
   /// Send a request, get a response
   @override
   Future<T> sendRequest<T>(String method, Object? param) async {
-    T t;
-    try {
-      if (debugRpcClient) {
-        _log('sendRequest: $method $param');
-      }
-      t = await _wrapException(() => client.sendRequest(method, param)) as T;
+    if (debugRpcClient) {
+      _log('sendRequest: $method $param');
+    }
+    // json_rpc exceptions are converted by _wrapException
+    var t = await _wrapException(() => client.sendRequest(method, param)) as T;
 
-      /// Debug helper
-      if (debugRpcClient) {
-        _log('sendRequest result: $t');
-      }
-    } on json_rpc.RpcException catch (e) {
-      // devPrint('ERROR ${e.runtimeType} $e ${e.message} ${e.data}');
-      throw RpcException(rpcExceptionCodeJsonRpc, e.message, e.data);
+    /// Debug helper
+    if (debugRpcClient) {
+      _log('sendRequest result: $t');
     }
     return t;
   }

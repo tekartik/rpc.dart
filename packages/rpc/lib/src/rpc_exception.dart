@@ -42,5 +42,5 @@ class _RpcException implements RpcException {
 
   @override
   String toString() =>
-      'RpcException($code, $message${arguments == null ? '' : ', $arguments'}';
+      'RpcException($code, $message${arguments == null ? '' : ', $arguments'})';
 }

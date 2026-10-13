@@ -31,40 +31,55 @@ class RpcTestContext {
   /// Rpc server
   late RpcServer rpcServer;
 
+  late RpcClient _rpcClient;
+
   /// Constructor
   RpcTestContext(this.webSocketChannelFactory);
 
   /// Set up
   Future<void> setUp() async {
-    rpcServer = await RpcServer.serve(
-      webSocketChannelServerFactory: webSocketChannelFactory.server,
+    var (server, client) = await _serveAndConnect(
+      webSocketChannelFactory,
       services: [],
     );
-    var rpcClient = await RpcClient.connect(
-      Uri.parse(rpcServer.url),
-      webSocketChannelClientFactory: webSocketChannelFactory.client,
-    );
-
-    expect(rpcClient, isNotNull);
+    rpcServer = server;
+    _rpcClient = client;
   }
 
   /// Tear down
   Future<void> tearDown() async {
+    await _rpcClient.close();
     await rpcServer.close();
   }
+}
+
+/// Serve [services] and connect a client to the server.
+Future<(RpcServer, RpcClient)> _serveAndConnect(
+  WebSocketChannelFactory factory, {
+  required List<RpcService> services,
+  FutureOr<void> Function(RpcServerChannel channel)? onClientDisconnected,
+  FutureOr<void> Function(RpcClient client)? onConnect,
+}) async {
+  var rpcServer = await RpcServer.serve(
+    webSocketChannelServerFactory: factory.server,
+    services: services,
+    onClientDisconnected: onClientDisconnected,
+  );
+  var rpcClient = await RpcClient.connect(
+    Uri.parse(rpcServer.url),
+    webSocketChannelClientFactory: factory.client,
+    onConnect: onConnect,
+  );
+  return (rpcServer, rpcClient);
 }
 
 /// Rpc tests
 void rpcTests(WebSocketChannelFactory factory) {
   group('rpc', () {
     test('init', () async {
-      var rpcServer = await RpcServer.serve(
-        webSocketChannelServerFactory: factory.server,
+      var (rpcServer, rpcClient) = await _serveAndConnect(
+        factory,
         services: [],
-      );
-      var rpcClient = await RpcClient.connect(
-        Uri.parse(rpcServer.url),
-        webSocketChannelClientFactory: factory.client,
       );
 
       expect(rpcClient, isNotNull);
@@ -72,15 +87,33 @@ void rpcTests(WebSocketChannelFactory factory) {
       await rpcServer.close();
     });
 
-    test('onConnect', () async {
-      var rpcServer = await RpcServer.serve(
-        webSocketChannelServerFactory: factory.server,
-        services: [],
+    test('client close removes its channel', () async {
+      var disconnected = <RpcServerChannel>[];
+      var (rpcServer, rpcClient) = await _serveAndConnect(
+        factory,
+        services: [PingRpcService()],
+        onClientDisconnected: disconnected.add,
       );
+      // Make sure the server side channel exists
+      await rpcClient.sendServiceRequest<String>('ping_service', 'ping', null);
+      expect(rpcServer.channels, hasLength(1));
+      var channel = rpcServer.channels.first;
+      await rpcClient.close();
+      var stopwatch = Stopwatch()..start();
+      while (rpcServer.channels.isNotEmpty &&
+          stopwatch.elapsed < const Duration(seconds: 5)) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(rpcServer.channels, isEmpty);
+      expect(disconnected, [channel]);
+      await rpcServer.close();
+    });
+
+    test('onConnect', () async {
       var onConnectCalledCount = 0;
-      var rpcClient = await RpcClient.connect(
-        Uri.parse(rpcServer.url),
-        webSocketChannelClientFactory: factory.client,
+      var (rpcServer, rpcClient) = await _serveAndConnect(
+        factory,
+        services: [],
         onConnect: (RpcClient client) async {
           expect(client, isNotNull);
           onConnectCalledCount++;
@@ -131,13 +164,9 @@ void rpcTests(WebSocketChannelFactory factory) {
     });
 
     test('simple ping', () async {
-      var rpcServer = await RpcServer.serve(
-        webSocketChannelServerFactory: factory.server,
+      var (rpcServer, rpcClient) = await _serveAndConnect(
+        factory,
         services: [PingRpcService()],
-      );
-      var rpcClient = await RpcClient.connect(
-        Uri.parse(rpcServer.url),
-        webSocketChannelClientFactory: factory.client,
       );
       await rpcClient.sendServiceRequest<String>(
         'ping_service',
@@ -165,13 +194,9 @@ void rpcTests(WebSocketChannelFactory factory) {
     });
 
     test('close from server', () async {
-      var rpcServer = await RpcServer.serve(
-        webSocketChannelServerFactory: factory.server,
+      var (rpcServer, rpcClient) = await _serveAndConnect(
+        factory,
         services: [],
-      );
-      var rpcClient = await RpcClient.connect(
-        Uri.parse(rpcServer.url),
-        webSocketChannelClientFactory: factory.client,
       );
 
       var doneFuture = rpcClient.done;
@@ -179,55 +204,15 @@ void rpcTests(WebSocketChannelFactory factory) {
       await doneFuture;
     });
 
-    late RpcServer rpcServer;
-
-    setUpAll(() async {
-      rpcServer = await RpcServer.serve(
-        webSocketChannelServerFactory: factory.server,
-        services: [],
-      );
-      var rpcClient = await RpcClient.connect(
-        Uri.parse(rpcServer.url),
-        webSocketChannelClientFactory: factory.client,
-      );
-
-      expect(rpcClient, isNotNull);
-    });
-
-    tearDownAll(() async {
-      await rpcServer.close();
+    test('RpcTestContext', () async {
+      var ctx = RpcTestContext(factory);
+      await ctx.setUp();
+      expect(ctx.rpcServer.url, isNotEmpty);
+      await ctx.tearDown();
     });
   });
 }
 
 void main() {
   rpcTests(webSocketChannelFactoryMemory);
-
-  group('server', () {
-    test('init', () async {
-      WebSocketChannelFactory factory = webSocketChannelFactoryMemory;
-      var rpcServer = await RpcServer.serve(
-        webSocketChannelServerFactory: factory.server,
-        services: [],
-      );
-      var rpcClient = await RpcClient.connect(
-        Uri.parse(rpcServer.url),
-        webSocketChannelClientFactory: factory.client,
-      );
-
-      expect(rpcClient, isNotNull);
-
-      await rpcServer.close();
-    });
-    late RpcTestContext ctx;
-
-    setUpAll(() async {
-      ctx = RpcTestContext(webSocketChannelFactoryMemory);
-      await ctx.setUp();
-    });
-
-    tearDownAll(() async {
-      await ctx.tearDown();
-    });
-  });
 }

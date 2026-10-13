@@ -79,57 +79,56 @@ void main() {
       );
       expect(result, isNull);
     });
-    test('dummy', () async {
+    Future<RpcException> expectRpcException(String method) async {
       try {
         await rpcClient.sendServiceRequest<void>(
           simpleRcpServiceName,
-          'dummy',
+          method,
           null,
         );
       } on RpcException catch (e) {
-        // RpcException(rpc_exception_unsupported, simple: onCall(dummy) not supported
-        expect(e.code, 'rpc_exception_unsupported');
-        // 'simple: onCall(dummy) not supported'
-        expect(e.message, contains('supported'));
+        return e;
       }
+      fail('$method should throw an RpcException');
+    }
+
+    test('dummy', () async {
+      var e = await expectRpcException('dummy');
+      // RpcException(rpc_exception_unsupported, simple: onCall(dummy) not supported
+      expect(e.code, 'rpc_exception_unsupported');
+      // 'simple: onCall(dummy) not supported'
+      expect(e.message, contains('supported'));
     });
     test('throw', () async {
-      try {
-        await rpcClient.sendServiceRequest<void>(
-          simpleRcpServiceName,
-          'throw',
-          null,
-        );
-      } on RpcException catch (e) {
-        // RpcException(throw, Throwing, {})
-        expect(e.code, 'throw');
-        expect(e.message, 'Throwing');
-        // ignore: inference_failure_on_collection_literal
-        expect(e.arguments, {});
-      }
+      var e = await expectRpcException('throw');
+      // RpcException(throw, Throwing, {})
+      expect(e.code, 'throw');
+      expect(e.message, 'Throwing');
+      // ignore: inference_failure_on_collection_literal
+      expect(e.arguments, {});
     });
 
     test('throw_any', () async {
-      try {
-        await rpcClient.sendServiceRequest<void>(
-          simpleRcpServiceName,
-          'throw_any',
-          null,
-        );
-      } on RpcException catch (e) {
-        //   'data': {
-        //               'full': 'Bad state: Throwing any',
-        //               'stack': 'test/rpc_service_test.dart 24:7
-        //               'request': {
-        //                 'jsonrpc': '2.0',
-        //                 'method': 'service',
-        //                 'id': 1,
-        //                 'params': {'service': 'simple', 'method': 'throw_any', 'data': null}
-        //               }
-        expect(e.code, 'rpc_exception_json');
-        expect(e.message, contains('Throwing any'));
-        expect((e.arguments as Map)['data'], isNotNull);
-      }
+      var e = await expectRpcException('throw_any');
+      //   'data': {
+      //               'full': 'Bad state: Throwing any',
+      //               'stack': 'test/rpc_service_test.dart 24:7
+      //               'request': {
+      //                 'jsonrpc': '2.0',
+      //                 'method': 'service',
+      //                 'id': 1,
+      //                 'params': {'service': 'simple', 'method': 'throw_any', 'data': null}
+      //               }
+      expect(e.code, 'rpc_exception_json');
+      expect(e.message, contains('Throwing any'));
+      expect((e.arguments as Map)['data'], isNotNull);
+    });
+    test('ping does not throw', () async {
+      // The helper must fail when the call succeeds
+      await expectLater(
+        expectRpcException('ping'),
+        throwsA(isA<TestFailure>()),
+      );
     });
   });
 }
