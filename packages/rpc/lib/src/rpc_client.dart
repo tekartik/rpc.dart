@@ -58,11 +58,17 @@ class _AutoConnectRpcClient
         if (innerRpcClient != null) {
           return innerRpcClient!;
         }
-        var rpcClient = innerRpcClient = await RpcClient.connect(
+        var rpcClient = await RpcClient.connect(
           uri,
           onConnect: onConnect,
           webSocketChannelClientFactory: webSocketChannelClientFactory,
         );
+        if (_forceClosed) {
+          // Closed while connecting, do not keep the connection.
+          await rpcClient.close();
+          throw _closedException();
+        }
+        innerRpcClient = rpcClient;
         rpcClient.done.then((_) {
           if (debugRpcClient) {
             _log('innerRpcClient disconnected');
@@ -94,27 +100,43 @@ class _AutoConnectRpcClient
 
   final delays = <int>[100, 200, 400, 800, 1600, 3200, 6400, 12800];
 
+  RpcClientConnectionException _closedException() =>
+      RpcClientConnectionException._('Closed');
+
+  /// Wait before a retry, stops waiting once closed.
+  Future<void> _retryDelay(int delay) async {
+    var completer = Completer<void>();
+    var timer = Timer(Duration(milliseconds: delay), completer.complete);
+    try {
+      await Future.any([completer.future, done]);
+    } finally {
+      timer.cancel();
+    }
+  }
+
   Future<T> _try<T>(Future<T> Function(RpcClient rpcClient) action) async {
     RpcClientConnectionException? lastError;
     for (var delay in delays) {
+      // Checked outside the try, a close is never retried.
+      if (_forceClosed) {
+        throw _closedException();
+      }
       try {
-        if (_forceClosed) {
-          throw RpcClientConnectionException._('Closed');
-        }
         var rpcClient = await connect();
 
         return await action(rpcClient);
       } on RpcClientConnectionException catch (e) {
         lastError = e;
         _log('Failed to connect $e');
-
-        await Future<void>.delayed(Duration(milliseconds: delay));
       } on StateError catch (e) {
         lastError = RpcClientConnectionException._(e);
         _log('Bad state $e');
-        await Future<void>.delayed(Duration(milliseconds: delay));
       }
       innerRpcClient = null;
+      if (_forceClosed) {
+        throw _closedException();
+      }
+      await _retryDelay(delay);
     }
     if (lastError != null) {
       throw lastError;

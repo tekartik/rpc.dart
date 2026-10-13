@@ -23,6 +23,31 @@ class PingRpcService extends RpcServiceBase {
   }
 }
 
+/// Service whose 'hang' method answers once [answer] completes.
+class _HangRpcService extends RpcServiceBase {
+  _HangRpcService(this.answer) : super('hang_service');
+
+  final Future<void> answer;
+
+  /// Completes when a hang call is received.
+  final called = Completer<void>();
+
+  @override
+  FutureOr<Object?> onCall(
+    RpcServerChannel channel,
+    RpcMethodCall methodCall,
+  ) async {
+    if (methodCall.method == 'hang') {
+      if (!called.isCompleted) {
+        called.complete();
+      }
+      await answer;
+      return 'answer';
+    }
+    return super.onCall(channel, methodCall);
+  }
+}
+
 /// Rpc Test context
 class RpcTestContext {
   /// Web socket channel factory
@@ -191,6 +216,64 @@ void rpcTests(WebSocketChannelFactory factory) {
         'ping_data',
       );
       await rpcServer.close();
+    });
+
+    test('autoConnect close fails a pending request at once', () async {
+      var answer = Completer<void>();
+      var service = _HangRpcService(answer.future);
+      var rpcServer = await RpcServer.serve(
+        webSocketChannelServerFactory: factory.server,
+        services: [service],
+      );
+      var rpcClient = AutoConnectRpcClient.autoConnect(
+        Uri.parse(rpcServer.url),
+        webSocketChannelClientFactory: factory.client,
+      );
+      var future = rpcClient.sendServiceRequest<String>(
+        'hang_service',
+        'hang',
+        null,
+      );
+      var result = expectLater(
+        future,
+        throwsA(isA<RpcClientConnectionException>()),
+      );
+      await service.called.future;
+      var stopwatch = Stopwatch()..start();
+      await rpcClient.close();
+      // Used to retry for about 25 s before failing.
+      await result;
+      expect(stopwatch.elapsed, lessThan(const Duration(seconds: 2)));
+      answer.complete();
+      await rpcServer.close();
+    });
+
+    test('autoConnect close stops the reconnect wait', () async {
+      var rpcServer = await RpcServer.serve(
+        webSocketChannelServerFactory: factory.server,
+        services: [PingRpcService()],
+      );
+      var url = rpcServer.url;
+      await rpcServer.close();
+      var rpcClient = AutoConnectRpcClient.autoConnect(
+        Uri.parse(url),
+        webSocketChannelClientFactory: factory.client,
+      );
+      // Retries with growing delays as the server is down.
+      var future = rpcClient.sendServiceRequest<String>(
+        'ping_service',
+        'ping',
+        null,
+      );
+      var result = expectLater(
+        future,
+        throwsA(isA<RpcClientConnectionException>()),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      var stopwatch = Stopwatch()..start();
+      await rpcClient.close();
+      await result;
+      expect(stopwatch.elapsed, lessThan(const Duration(seconds: 2)));
     });
 
     test('close from server', () async {
