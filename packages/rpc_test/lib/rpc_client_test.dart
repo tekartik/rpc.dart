@@ -1,3 +1,6 @@
+/// [rpcClientTests], the client only rpc tests (browser factory included).
+library;
+
 import 'package:dev_test/test.dart';
 import 'package:tekartik_rpc/rpc_client.dart';
 

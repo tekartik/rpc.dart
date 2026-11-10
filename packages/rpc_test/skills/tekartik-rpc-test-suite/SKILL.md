@@ -44,13 +44,16 @@ your own tests.
 * Two entry points, no `src/`:
   * `package:tekartik_rpc_test/rpc_server_test.dart` exports
     `rpcTests(WebSocketChannelFactory factory)` - the full suite (connect,
-    `onConnect` callback, ping through a service, auto-connect across a
-    server restart, close from the server) - plus the helpers
-    `PingRpcService` and `RpcTestContext`.
+    `onConnect` callback and a failing one closing the connection, ping
+    through a service, a client close removing its server channel,
+    auto-connect across a server restart, `AutoConnectRpcClient.close()`
+    failing a pending request and stopping the reconnect wait at once, close
+    from the server) - plus the helpers `PingRpcService` and
+    `RpcTestContext`.
   * `package:tekartik_rpc_test/rpc_client_test.dart` exports
     `rpcClientTests(WebSocketChannelClientFactory clientFactory)` - the
-    client-only suite (currently: connecting to a dead port throws
-    `RpcClientConnectionException`).
+    client-only suite (currently: connecting to `ws://localhost:9999`, a
+    port expected without server, throws `RpcClientConnectionException`).
 * Call them from `main()`, usually inside a `group(...)` naming the platform.
   They declare their own `group`/`test` entries, so nothing must be awaited.
 * `rpcTests` needs a full `WebSocketChannelFactory` (it serves), so it is VM
@@ -69,9 +72,9 @@ your own tests.
   `ping` with `'pong'`; reuse it as the trivial service in your own server
   tests instead of redefining one.
 * `RpcTestContext(factory)` is a tiny fixture: `await ctx.setUp()` serves an
-  empty `RpcServer` (field `ctx.rpcServer`) and checks that a client can
-  connect; `await ctx.tearDown()` closes the server. It keeps no client, so
-  connect your own from `ctx.rpcServer.url`.
+  empty `RpcServer` (field `ctx.rpcServer`) and connects a private client;
+  `await ctx.tearDown()` closes that client then the server. Connect your own
+  client from `ctx.rpcServer.url`.
 * The io suite binds real local ports, including rebinding the same port
   after a restart; do not run it in a sandbox without loopback networking.
   The memory factory needs none and is the fastest default.

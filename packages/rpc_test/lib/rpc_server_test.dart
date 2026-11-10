@@ -1,3 +1,7 @@
+/// [rpcTests], the shared rpc tests on a full web socket factory (it
+/// serves), and the [PingRpcService] and [RpcTestContext] helpers.
+library;
+
 import 'dart:async';
 
 import 'package:dev_test/test.dart';
