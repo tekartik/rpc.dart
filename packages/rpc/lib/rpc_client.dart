@@ -1,3 +1,8 @@
+/// Rpc client: [RpcClient.connect] (one connection) and
+/// [AutoConnectRpcClient.autoConnect] (reconnects), calling the services of
+/// an rpc server with [RpcClient.sendServiceRequest]. Runs on every platform.
+library;
+
 export 'package:tekartik_web_socket/web_socket_client.dart'
     show WebSocketChannelClientFactory;
 

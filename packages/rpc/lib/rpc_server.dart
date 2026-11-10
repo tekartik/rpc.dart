@@ -1,3 +1,7 @@
+/// Rpc server: [RpcServer.serve] exposes [RpcService]s (extend
+/// [RpcServiceBase]) over a WebSocket, on `dart:io` by default.
+library;
+
 export 'package:tekartik_web_socket_io/web_socket_io.dart'
     show WebSocketChannelServerFactory, webSocketChannelServerFactoryIo;
 

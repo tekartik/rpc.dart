@@ -151,6 +151,32 @@ void rpcTests(WebSocketChannelFactory factory) {
       await doneFuture;
     });
 
+    test('onConnect failure closes the connection', () async {
+      var rpcServer = await RpcServer.serve(
+        webSocketChannelServerFactory: factory.server,
+        services: [PingRpcService()],
+      );
+      try {
+        await expectLater(
+          RpcClient.connect(
+            Uri.parse(rpcServer.url),
+            webSocketChannelClientFactory: factory.client,
+            onConnect: (_) => throw StateError('onConnect failure'),
+          ),
+          throwsA(isA<StateError>()),
+        );
+        // The server side channel goes away with the client connection.
+        var stopwatch = Stopwatch()..start();
+        while (rpcServer.channels.isNotEmpty &&
+            stopwatch.elapsed < const Duration(seconds: 5)) {
+          await Future<void>.delayed(const Duration(milliseconds: 10));
+        }
+        expect(rpcServer.channels, isEmpty);
+      } finally {
+        await rpcServer.close();
+      }
+    }, timeout: const Timeout(Duration(seconds: 15)));
+
     test('autoConnect onConnect', () async {
       var rpcServer = await RpcServer.serve(
         webSocketChannelServerFactory: factory.server,

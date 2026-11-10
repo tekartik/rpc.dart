@@ -261,7 +261,11 @@ abstract class RpcClient {
   /// connection.
   Future<void> get done;
 
-  /// Connect to a server, throws RpcClientConnectionException on error
+  /// Connect to a server, throws [RpcClientConnectionException] when the
+  /// connection fails.
+  ///
+  /// [onConnect] is called once connected; when it (or the handshake) throws,
+  /// the connection is closed and its error is thrown.
   static Future<RpcClient> connect(
     Uri url, {
     WebSocketChannelClientFactory? webSocketChannelClientFactory,
@@ -285,8 +289,15 @@ abstract class RpcClient {
     var coreServiceClient = RpcCoreServiceClient(
       RpcServiceClient(rpcClient, coreServiceName),
     );
-    await coreServiceClient.init();
-    await onConnect?.call(rpcClient);
+    try {
+      await coreServiceClient.init();
+      await onConnect?.call(rpcClient);
+    } catch (e, st) {
+      // Do not leave the connection open. Not a rethrow: dart2wasm traps on
+      // some rethrow (dart-lang/sdk#64892).
+      await jsonRpcClient.close();
+      Error.throwWithStackTrace(e, st);
+    }
     jsonRpcClient.done.then((_) {
       rpcClient.setDone();
     }).unawait();

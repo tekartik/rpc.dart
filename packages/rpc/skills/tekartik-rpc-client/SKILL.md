@@ -39,13 +39,16 @@ runtime, so the same code runs in a Dart VM app, a Flutter app and on the web.
   It performs a handshake against the built-in core service, then calls the
   optional `onConnect` callback. It throws `RpcClientConnectionException`
   (an `RpcClientException`) when the socket cannot be opened - wrap it in a
-  `try`/`catch`, there is no retry.
+  `try`/`catch`, there is no retry. When the handshake or `onConnect` throws,
+  the connection is closed and that error is thrown as is.
 * Resilient connection: `AutoConnectRpcClient.autoConnect(uri)` is
   synchronous and never fails at creation. Each request connects lazily and
   retries with a growing backoff (100ms up to 12.8s, 8 attempts) on
   connection errors and `StateError`, so it survives a server restart;
   `onConnect` runs again on every reconnection. After the last retry it
-  throws `RpcClientConnectionException`.
+  throws `RpcClientConnectionException`. A request whose connection dropped
+  before the answer is sent again: the server may run it twice, keep the
+  methods called through it idempotent.
 * `webSocketChannelClientFactory` defaults to
   `rpcWebSocketChannelClientFactoryUniversal` (browser or io depending on
   `kDartIsWeb`). Pass `webSocketChannelFactoryMemory.client` (from

@@ -15,8 +15,9 @@ description: >-
 `tekartik_rpc` is a thin abstraction over `json_rpc_2` running on a
 `tekartik_web_socket` channel. A server is a list of named services; a client
 calls `service.method(data)` and gets a JSON value back. The server library
-pulls in `dart:io`, so it runs on the VM (or Flutter native), never in a
-browser.
+pulls in `dart:io`: its default factory (`webSocketChannelServerFactoryIo`)
+runs on the VM (or Flutter native); in a browser only an in-memory server
+works (`webSocketChannelFactoryMemory.server`, for tests).
 
 ## Guidelines
 
@@ -63,8 +64,10 @@ browser.
   the same `code`, `message` and `arguments`. Any other thrown object is
   wrapped with code `rpc_exception_json`, a message containing the original
   text and an `arguments` map holding `data` (full text, stack, request).
-  Prefer explicit `RpcException`s for anything the client branches on.
-* Service names are unique: `RpcServer.serve` asserts on duplicates, and the
+  Prefer explicit `RpcException`s for anything the client branches on: the
+  wrapped error sends the server stack trace to the client.
+* Service names are unique: `RpcServer.serve` asserts on duplicates (an
+  assert only: in release the last one wins), and the
   name `tekartik_rpc` is reserved for the built-in core service used by the
   client handshake.
 * `debugRpcServer = true` prints every channel event on stdout; pair it with
